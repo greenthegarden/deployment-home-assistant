@@ -1,0 +1,6 @@
+---
+
+- name: chusiang.helloworld
+  cms: git
+  src: https://github.com/chusiang/helloworld.ansible.role.git
+  version: origin/master

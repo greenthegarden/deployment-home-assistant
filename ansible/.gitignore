@@ -1,0 +1,5 @@
+# do not add external ansible roles
+roles/chusiang.*
+
+# ensure ansible retry files are not added to repo
+*.retry
