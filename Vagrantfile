@@ -26,6 +26,7 @@ vb_settings = config_file['configs'][config_file['configs']['use']]['vb']
 services_node_count = config_file['configs']['services_node_count']
 
 # Define references which do not change with names
+controller_node_base = "controller-node"
 services_node_base = "services-node"
 
 puts "Using configurations for %s" % config_file['configs']['use']
@@ -52,7 +53,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # # Use local ssh key to connect to remote vagrant box
   # if not Vagrant::Util::Platform.windows? then
-  config.ssh.private_key_path = './ssh_keys/id_rsa'
+  # config.ssh.private_key_path = './ssh_keys/id_rsa'
   # end
 
   # Set virtualbox provider specific attributes
@@ -82,7 +83,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         services_node_ip = generate_node_ip(vb_settings, services_node_ip_base)
         # puts "Services node IP address set to %s" % services_node_ip
 
-        services_node.vm.network services_node_settings['vb']['external_network'], ip: services_node_ip#, netmask: base_settings["external_netmask"]
+        services_node.vm.network :private_network, ip: "172.16.1.#{i + 100}"
 
         vb.name = services_node_name
         vb.cpus = services_node_settings['vb']['resources']['cpus']
@@ -95,7 +96,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       end
 
       # Configure ssh access on VM
-      public_key = File.read("ssh_keys/id_ed25519.pub")
+      public_key = File.read("./ssh_keys/id_ed25519.pub")
       services_node.vm.provision :shell, :inline =>"
         echo 'Copying ansible-vm public SSH Keys to the VM'
         mkdir -p /home/vagrant/.ssh
@@ -140,7 +141,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       controller_node_ip = generate_node_ip(vb_settings, controller_node_ip_base)
       # puts "Controller node IP address set to %s" % controller_node_ip
 
-      # controller_node.vm.network controller_node_settings['vb']['external_network'], ip: controller_node_ip#, netmask: base_settings["external_netmask"]
+      controller_node.vm.network :private_network, ip: "172.16.1.10"
 
       vb.name = controller_node_name
       vb.memory = controller_node_settings['vb']['resources']['memory']
@@ -153,8 +154,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     end
 
-    # Copy private ssh key to controller
-    controller_node.vm.provision "file", source: "ssh_keys/id_ed25519", destination: "/home/vagrant/.ssh/id_ed25519"
+    # Copy private ssh key to controller and set permissions
+    controller_node.vm.provision "file", source: "./ssh_keys/id_ed25519", destination: "/home/vagrant/.ssh/id_ed25519"
+    controller_node.vm.provision :shell, :inline =>"
+      echo 'Setting permissions on ssh private key'
+      chown -R vagrant:vagrant /home/vagrant/.ssh
+      chmod 600 /home/vagrant/.ssh/id_ed25519
+      ", privileged: false
 
     # Install Ansible on contoller_node and provision services
     controller_node.vm.provision :ansible_local do |ansible|

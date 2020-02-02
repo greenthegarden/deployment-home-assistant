@@ -13,18 +13,16 @@ configs:
     controller_node:
       name: "controller-node"
       vb:
-        external_network: "private_network"
         external_ip_base: 10
-        box: "ubuntu/xenial64"
+        box: "debian/buster64"
         resources:
           cpus: 1
           memory: 512
     services_node:
-      name: "services-node-g"
+      name: "services-node"
       vb:
-        external_network: "private_network"
         external_ip_base: 100
-        box: "ubuntu/xenial64"
+        box: "debian/buster64"
         resources:
           cpus: 1
           memory: 512
@@ -36,7 +34,6 @@ configs:
     controller_node:
       name: "controller-node"
       vb:
-        external_network: "private_network"
         external_ip_base: 10
         box: "debian/buster64"
         resources:
@@ -45,7 +42,6 @@ configs:
     services_node:
       name: "services-node"
       vb:
-        external_network: "private_network"
         external_ip_base: 100
         box: "debian/buster64"
         resources:
